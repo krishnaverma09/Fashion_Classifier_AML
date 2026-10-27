@@ -13,8 +13,8 @@ Random Forest).
 | Name | Enroll |
 |---|---|
 | Satyam Kumar | 2401010428 |
-| Krishna Verma | TBD |
-| Akshit Vats | TBD |
+| Krishna Verma | 2401010240 |
+| Akshit Vats | 2401020085 |
 | Chinmay Soni | 2401010134 |
 | Lakshya Bapna | TBD |
 
