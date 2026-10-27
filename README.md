@@ -193,4 +193,4 @@ result are never modified.
 
 ## Next steps
 
-Step 8: choose a hosting platform, then deploy and verify the demo.
+Step 8: choose a hosting platform, then deploy and verify the demo.  
