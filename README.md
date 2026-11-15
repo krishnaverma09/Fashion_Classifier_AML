@@ -9,6 +9,9 @@ served through a local Gradio demo. On the official test set, the ensemble reach
 accuracy and the residual CNN **94.32%**. The small CNN reaches **89.00%**, and the best
 classical baseline (pixel Random Forest) **85.27%**.
 
+The full write-up, in IEEE conference format, is
+[`reports/ieee_report/Fashion_Classifier_IEEE_Report.pdf`](reports/ieee_report/Fashion_Classifier_IEEE_Report.pdf).
+
 ## Team
 
 | Name | Enroll |
