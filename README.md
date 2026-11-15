@@ -63,6 +63,7 @@ Results for the 48,000-image models, with per-class recall and learning curves, 
 .
 ├── src/                 data, baselines, CNN, training, evaluation, prediction, v2/v3 experiments
 ├── scripts/             setup, reproduction pipeline, verification scripts
+├── space/               Hugging Face Space settings (README.md) and requirements.txt
 ├── tests/               pytest suite
 ├── app.py               Gradio demo
 ├── notebooks/           executed workflow notebook and the unmodified reference lab
