@@ -1,0 +1,25 @@
+{
+  "frozen_at_utc": "2026-11-15T10:41:26.168373+00:00",
+  "chosen": "ensemble",
+  "best_single_model": "resnet",
+  "ensemble_members": [
+    "resnet",
+    "kadam_arch5",
+    "keras_cnn"
+  ],
+  "validation_accuracy": {
+    "ann": 0.91,
+    "ijst_cnn": 0.9184166666666667,
+    "kadam_arch3": 0.92875,
+    "kadam_arch5": 0.9375833333333333,
+    "keras_cnn": 0.93075,
+    "resnet": 0.94975,
+    "ensemble": 0.9515
+  },
+  "rule": "Highest validation accuracy among the single models and the top-3 softmax ensemble.",
+  "official_test_loaded": true,
+  "chosen_test_accuracy": 0.9419,
+  "chosen_test_macro_f1": 0.9416571527749827,
+  "v1_cnn_test_accuracy": 0.89,
+  "note": "Single test evaluation after the validation-based choice was frozen; not used for tuning."
+}
