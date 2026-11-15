@@ -11,5 +11,4 @@ archive/
 data/raw/
 data/processed/
 runs/
-reports/step*-backup/
 # models/ is intentionally kept: an image built after `pipeline` carries the installed weights.
