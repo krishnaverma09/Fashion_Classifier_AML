@@ -10,6 +10,12 @@ import json
 import os
 
 os.environ.setdefault('GRADIO_ANALYTICS_ENABLED', 'False')
+try:
+    import spaces  # Hugging Face ZeroGPU; imported before torch, as it requires. Absent locally.
+    gpu = spaces.GPU
+except ImportError:
+    def gpu(function):
+        return function
 import gradio as gr
 import torch
 
@@ -210,7 +216,7 @@ function enrichScoreElements() {
   if (!container) return;
   const dts = container.querySelectorAll('dt');
   dts.forEach(dt => {
-    const raw = dt.textContent.replace(/[^\w\s\/\-]/g, '').trim();
+    const raw = dt.textContent.replace(/[^\\w\\s\\/\\-]/g, '').trim();
     if (CATEGORY_EMOJIS[raw] && !dt.querySelector('.score-icon')) {
       dt.innerHTML = '<span class="score-icon" style="margin-right: 6px;">' + CATEGORY_EMOJIS[raw] + '</span>' + raw;
     }
@@ -285,6 +291,7 @@ def get_predictor():
     return load_predictor(device='cpu')
 
 
+@gpu
 def handle_prediction(image, background):
     if image is None:
         return '### Add an image first\nUpload a clothing image or choose one of the samples below.', None, None
@@ -720,7 +727,8 @@ def create_demo():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--host', default='127.0.0.1')
+    # Hugging Face Spaces sets GRADIO_SERVER_NAME=0.0.0.0; locally the demo stays on localhost.
+    parser.add_argument('--host', default=os.environ.get('GRADIO_SERVER_NAME', '127.0.0.1'))
     parser.add_argument('--port', type=int, default=7860)
     parser.add_argument('--open-browser', action='store_true')
     args = parser.parse_args()
