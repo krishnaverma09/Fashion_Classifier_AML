@@ -13,7 +13,7 @@ os.environ.setdefault('GRADIO_ANALYTICS_ENABLED', 'False')
 import gradio as gr
 import torch
 
-from src.predict import FashionPredictor
+from src.predict_v3 import load_predictor
 
 ROOT = Path(__file__).resolve().parent
 
@@ -280,9 +280,9 @@ setInterval(function() {
 
 @lru_cache(maxsize=1)
 def get_predictor():
-    """One CPU model per server process; no mutable inference state."""
+    """One CPU model per server process (the ResNet, or the SmallCNN if it is not installed)."""
     torch.set_num_threads(2)
-    return FashionPredictor(ROOT / 'models/cnn/best.pt', device='cpu')
+    return load_predictor(device='cpu')
 
 
 def handle_prediction(image, background):
@@ -386,7 +386,7 @@ def create_demo():
                       </p>
                       <div class="badge-list" style="margin-top: 10px;">
                         <span class="info-badge blue">E-Commerce Tagging</span>
-                        <span class="info-badge purple">PyTorch CNN</span>
+                        <span class="info-badge purple">PyTorch ResNet</span>
                         <span class="info-badge green">Production UI</span>
                         <span class="info-badge orange">Phase 1 Delivery</span>
                       </div>
@@ -397,9 +397,10 @@ def create_demo():
                         Our rigorous evaluation framework eliminates experimental bias through disciplined data splits:
                       </p>
                       <ul class="tab-bullet-list">
-                        <li><strong>Identical Training Budget:</strong> 12,000 stratified training images across all classical baselines and CNN.</li>
+                        <li><strong>Identical Training Budget:</strong> 12,000 stratified training images across all classical baselines and the SmallCNN.</li>
                         <li><strong>Baseline Exploration:</strong> Logistic Regression, kNN, Random Forest, and Linear SVM evaluated on flattened pixels and handcrafted HOG features.</li>
-                        <li><strong>Strict Test Gate:</strong> Model choices frozen in <code>frozen-models.json</code> prior to single-run official test set evaluation.</li>
+                        <li><strong>Research-Paper Models:</strong> CNNs from three published studies and a residual network, trained on all 48,000 training images.</li>
+                        <li><strong>Strict Test Gate:</strong> Model choices frozen in <code>frozen-models.json</code> and <code>selection.json</code> prior to single-run official test set evaluation.</li>
                       </ul>
                     </div>
                   </div>
@@ -495,19 +496,20 @@ def create_demo():
                 <div class="info-tab-content">
                   <div class="info-grid-2">
                     <div>
-                      <h4 class="tab-subtitle">🧠 SmallCNN Architecture Specifications</h4>
+                      <h4 class="tab-subtitle">🧠 ResNet Architecture Specifications</h4>
                       <div class="arch-box">
                         <div class="arch-layer"><strong>Input:</strong> 1 × 28 × 28 normalized grayscale tensor</div>
                         <div class="arch-arrow">↓</div>
-                        <div class="arch-layer"><strong>Conv Block 1:</strong> Conv2d(1→32, 3×3, pad 1) + BatchNorm2d(32) + ReLU + MaxPool2d(2×2) → (32, 14, 14)</div>
+                        <div class="arch-layer"><strong>Stem:</strong> Conv2d(1→32, 3×3, pad 1) + BatchNorm2d(32) + ReLU → (32, 28, 28)</div>
                         <div class="arch-arrow">↓</div>
-                        <div class="arch-layer"><strong>Conv Block 2:</strong> Conv2d(32→64, 3×3, pad 1) + BatchNorm2d(64) + ReLU + MaxPool2d(2×2) → (64, 7, 7)</div>
+                        <div class="arch-layer"><strong>Residual Stages:</strong> 2 blocks × 32 → 2 blocks × 64 (stride 2) → 2 blocks × 128 (stride 2) → (128, 7, 7). Each block: two 3×3 Conv + BatchNorm with a skip connection</div>
                         <div class="arch-arrow">↓</div>
-                        <div class="arch-layer"><strong>Dense Head:</strong> Flatten(3136) → Linear(3136→128) + ReLU + Dropout(0.4) → Linear(128→64) + ReLU → Linear(64→10)</div>
+                        <div class="arch-layer"><strong>Head:</strong> Global Average Pool → Dropout(0.3) → Linear(128→10)</div>
                       </div>
                       <div class="param-summary" style="margin-top: 10px;">
-                        <span class="info-badge green">Trainable Parameters: <strong>429,450</strong></span>
+                        <span class="info-badge green">Trainable Parameters: <strong>696,042</strong></span>
                         <span class="info-badge blue">Optimizer: Adam (lr=1e-3, weight_decay=1e-4)</span>
+                        <span class="info-badge orange">Augmentation: flip, shift, random erasing</span>
                       </div>
                     </div>
 
@@ -525,9 +527,27 @@ def create_demo():
                           </thead>
                           <tbody>
                             <tr class="highlight-row">
-                              <td><strong>🔥 SmallCNN (Best Deployed)</strong></td>
-                              <td><strong>89.00%</strong></td>
-                              <td><strong>88.85%</strong></td>
+                              <td><strong>🔥 ResNet (Deployed)</strong></td>
+                              <td><strong>94.32%</strong></td>
+                              <td><strong>94.31%</strong></td>
+                              <td>94.97%</td>
+                            </tr>
+                            <tr>
+                              <td>Ensemble (ResNet + Arch 5 + Keras CNN)</td>
+                              <td>94.19%</td>
+                              <td>94.17%</td>
+                              <td>95.15%</td>
+                            </tr>
+                            <tr>
+                              <td>JSR Architecture 5</td>
+                              <td>92.74%</td>
+                              <td>92.72%</td>
+                              <td>93.76%</td>
+                            </tr>
+                            <tr>
+                              <td>SmallCNN (12,000 images)</td>
+                              <td>89.00%</td>
+                              <td>88.85%</td>
                               <td>89.93%</td>
                             </tr>
                             <tr>
@@ -570,7 +590,7 @@ def create_demo():
                         </table>
                       </div>
                       <p class="tab-note" style="margin-top: 8px;">
-                        ✨ <em>SmallCNN outperforms the best classical model by <strong>+3.73 percentage points</strong> (95% bootstrap CI [3.14, 4.31] pts).</em>
+                        ✨ <em>The ResNet improves on the SmallCNN by <strong>+5.32 percentage points</strong>; the SmallCNN outperforms the best classical model by +3.73 points (95% bootstrap CI [3.14, 4.31]).</em>
                       </p>
                     </div>
                   </div>
@@ -609,8 +629,8 @@ def create_demo():
                     <div class="feature-pill">
                       <div class="pill-icon green">🛡️</div>
                       <div class="pill-text">
-                        <span class="pill-title">Powered by CNN</span>
-                        <span class="pill-desc">Trained on 60,000+ images</span>
+                        <span class="pill-title">Powered by ResNet</span>
+                        <span class="pill-desc">94.3% test accuracy</span>
                       </div>
                     </div>
                   </div>

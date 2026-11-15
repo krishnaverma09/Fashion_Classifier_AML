@@ -9,7 +9,8 @@ venv/
 .env
 .env.*
 !.env.example
-# Datasets, weights and pipeline runs are generated (see README); only placeholders are tracked.
+# Datasets, weights and pipeline runs are generated (see README); only placeholders are tracked,
+# plus the tested ResNet that the demo serves (models/resnet/, about 2.8 MB).
 data/*
 !data/raw/
 !data/processed/
@@ -18,7 +19,9 @@ data/processed/*
 !**/.gitkeep
 models/*
 !models/.gitkeep
+!models/resnet/
 *.pt
 *.pth
+!models/resnet/best.pt
 runs/
 reports/environment-*.txt

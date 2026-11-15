@@ -1,0 +1,22 @@
+{
+  "model": "resnet",
+  "architecture": "src.model_v3.ResNet",
+  "checkpoint_sha256": "9116c6fa0251cc67e7a052d3232deee8ffc2fba5b0b1bc9460c5bfbcf9bdd1fc",
+  "source": "runs/v3/experiments/resnet/best.pt",
+  "class_names": [
+    "T-shirt/top",
+    "Trouser",
+    "Pullover",
+    "Dress",
+    "Coat",
+    "Sandal",
+    "Shirt",
+    "Sneaker",
+    "Bag",
+    "Ankle boot"
+  ],
+  "preprocessing": "uint8 -> float32 / 255; (N,1,28,28); original orientation",
+  "test_accuracy": 0.9432,
+  "test_macro_f1": 0.9430854828276752,
+  "validation_accuracy": 0.94975
+}

@@ -22,7 +22,7 @@ from gradio_client import Client, handle_file
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 import app
-from src.predict import FashionPredictor
+from src.predict_v3 import load_predictor
 
 
 def protected_manifest(choice):
@@ -50,7 +50,7 @@ def main():
     assert len(examples)==len(names)==11
     image_path=ROOT/'assets/examples/00.png'
     app.get_predictor.cache_clear()
-    with patch.object(app,'FashionPredictor',wraps=FashionPredictor) as constructor:
+    with patch.object(app,'load_predictor',wraps=load_predictor) as constructor:
         demo=app.create_demo()
         for path,background in examples:
             heading,scores,preview=app.handle_prediction(path,background)
@@ -128,9 +128,11 @@ def main():
         (isolated/'src').mkdir()
         (isolated/'models/cnn').mkdir(parents=True)
         shutil.copy2(ROOT/'app.py',isolated/'app.py')
-        for name in ['__init__.py','model.py','predict.py']:
+        for name in ['__init__.py','model.py','predict.py','model_v3.py','predict_v3.py']:
             shutil.copy2(ROOT/'src'/name,isolated/'src'/name)
         shutil.copy2(ROOT/'models/cnn/best.pt',isolated/'models/cnn/best.pt')
+        if (ROOT/'models/resnet').exists():
+            shutil.copytree(ROOT/'models/resnet',isolated/'models/resnet')
         shutil.copytree(ROOT/'assets',isolated/'assets')
         runner="""from unittest.mock import patch
 import sys
@@ -139,7 +141,7 @@ with patch('urllib.request.urlopen',side_effect=AssertionError('network')), patc
     demo=app.create_demo()
     heading,scores,preview=app.handle_prediction('assets/examples/00.png','dark')
     assert len(scores)==10 and preview.size==(28,28)
-    assert not {'src.data','src.train','src.baselines','src.evaluate'} & set(sys.modules)
+    assert not {'src.data','src.train','src.train_v2','src.train_v3','src.baselines','src.evaluate'} & set(sys.modules)
 print('Isolated app construction and callback passed')
 """
         env=dict(os.environ)
